@@ -391,11 +391,9 @@ class Scheduler:
     def __init__(self, cert, key):
         self.cert = cert
         self.key = key
-        self.endp = "https://scheduler.monroe-system.eu"
+        #self.endp = "https://scheduler.monroe-system.eu"
+        self.endp = "https://haugerud.nntb.no"
         self.endp_download = "https://www.monroe-system.eu"
-
-    # using wget as it's compiled against GNU TLS; anything using OpenSSL won't work due to MD5 hashes
-    # to be changed once fed4fire updates the experimenter certificates  
 
     def get(self, endpoint):
         '''Function which performs an HTTP GET request against the target backend.
@@ -406,13 +404,19 @@ class Scheduler:
         '''
         url = self.endp + endpoint
         cmd = [
-            'wget','--content-on-error', '--certificate', self.cert, '--private-key', self.key, url,
-            '-O', '-'
+            'curl','-sk','--cert', self.cert, '--key', self.key, url,
+            #'wget','--content-on-error', '--certificate', self.cert, '--private-key', self.key, url, '-O', '-'
         ]
+
+        #print("COMMAND:"," ".join(cmd))
+
         response = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        return json.loads(response.communicate()[0].decode())
+        data=response.communicate()
+        #print("RESPONSE",data[0])
+
+        return json.loads(data[0].decode())
 
     def post(self, endpoint, postrequest):
         '''Function which performs an HTTP POST request against the target backend.
@@ -423,10 +427,15 @@ class Scheduler:
         '''
         url = self.endp + endpoint
         cmd = [
-            'wget', '--content-on-error', '--certificate', self.cert,
-            '--private-key', self.key, '--post-data=' + postrequest,
-            '--header=Content-Type:application/json', url, '-O', '-'
+            'curl','-sk','--cert', self.cert, '--key', self.key, url, '-X', 'POST', 
+            '-d', postrequest, '-H', 'Content-Type:application/json', url
+            #'wget', '--content-on-error', '--certificate', self.cert,
+            #'--private-key', self.key, '--post-data=' + postrequest,
+            #'--header=Content-Type:application/json', url, '-O', '-'
         ]
+
+        #print("COMMAND:"," ".join(cmd))
+
         response = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return response.communicate()[0].decode()

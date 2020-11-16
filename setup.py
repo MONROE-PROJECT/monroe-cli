@@ -35,6 +35,7 @@ setup(
     entry_points={
     'console_scripts': [
         'monroe=monroe.cli:main',
+        'nornet=monroe.cli:main',
     ],
 },
 )
